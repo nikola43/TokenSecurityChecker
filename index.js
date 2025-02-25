@@ -41,7 +41,8 @@ const ERC20_ABI = [
 ];
 
 class TokenSecurityChecker {
-    explorerUrl = "https://api.scan.pulsechain.com/api/v2/smart-contracts/";
+    // explorerUrl = "https://api.scan.pulsechain.com/api/v2/smart-contracts/";
+    explorerUrl = "https://api.scan.v4.testnet.pulsechain.com/api/v2/smart-contracts/";
 
     constructor(rpcUrl) {
         this.provider = new ethers.providers.JsonRpcProvider(rpcUrl);
@@ -473,7 +474,8 @@ class TokenSecurityChecker {
     }
 }
 
-const rpcUrl = `https://rpc-pulsechain.g4mm4.io`;
+// const rpcUrl = `https://rpc-pulsechain.g4mm4.io`;
+const rpcUrl = `https://rpc-testnet-pulsechain.g4mm4.io`;
 const app = express();
 app.use(express.json()); // <==== parse request body as JSON
 app.use(express.urlencoded({ extended: true }));
