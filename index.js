@@ -1,5 +1,4 @@
 // Token Security Checker
-// Requires: ethers.js
 const { ethers } = require('ethers');
 const fs = require('fs');
 const cors = require("cors");
