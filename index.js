@@ -528,11 +528,13 @@ function calculatePegRatio(tokenValue, referenceValue) {
     if (ratio < 1) {
         // Token trading below peg - show as 1:X format
         const inverseRatio = (1 / ratio).toFixed(0);
-        ratioFormatted = `1:${inverseRatio}`;
+        ratioFormatted = `${inverseRatio}`;
+        // ratioFormatted = `1:${inverseRatio}`;
     } else {
         // Token trading above peg - show as X:1 format
         const normalRatio = ratio.toFixed(0);
-        ratioFormatted = `${normalRatio}:1`;
+        ratioFormatted = `${normalRatio}`;
+        // ratioFormatted = `${normalRatio}:1`;
     }
 
     // Prepare the formatted values for output
