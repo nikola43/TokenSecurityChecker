@@ -3,6 +3,7 @@ const { ethers } = require('ethers');
 const fs = require('fs');
 const cors = require("cors");
 const express = require("express");
+const axios = require('axios');
 
 // Common ERC20 ABI, extended with ownership and security-related functions
 const ERC20_ABI = [
@@ -90,6 +91,7 @@ class TokenSecurityChecker {
             await this.checkWhitelist();
             await this.checkTransferCooldown();
             await this.checkTransferPausable();
+            await this.checkPegRatio();
 
             return this.results;
         } catch (error) {
@@ -471,6 +473,74 @@ class TokenSecurityChecker {
         );
         console.log(`\nResults saved to ${filename}`);
     }
+
+    checkPegRatio = async () => {
+        const tokenAddress = this.results.tokenAddress;
+        const tokenId = tokenAddress.toLowerCase();
+        console.log(tokenId);
+
+        const query = `
+        query MyQuery {
+            tokens(where: { id: "${tokenId}" }) {
+            id
+            symbol
+            derivedUSD
+            }
+        }
+    `;
+
+        try {
+            const response = await axios.post(
+                'https://pdexsubgraph.9inch.io/subgraphs/name/exchange-v3',
+                {
+                    query,
+                },
+                {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
+            console.log(response.data.data.tokens[0]);
+
+
+            const pegRatio = calculatePegRatio(Number(response.data.data.tokens[0].derivedUSD), 1)
+
+            console.log(pegRatio);
+            this.results.pegRatio = pegRatio.ratioFormat;
+        } catch (error) {
+            console.error('GraphQL query failed:', error);
+            return null;
+        }
+    }
+}
+
+function calculatePegRatio(tokenValue, referenceValue) {
+    // Calculate the basic ratio
+    const ratio = tokenValue / referenceValue;
+
+    // Calculate the percentage (ratio * 100)
+    const percentageRatio = ratio * 100;
+
+    // Calculate the ratio format
+    let ratioFormatted;
+
+    if (ratio < 1) {
+        // Token trading below peg - show as 1:X format
+        const inverseRatio = (1 / ratio).toFixed(0);
+        ratioFormatted = `1:${inverseRatio}`;
+    } else {
+        // Token trading above peg - show as X:1 format
+        const normalRatio = ratio.toFixed(0);
+        ratioFormatted = `${normalRatio}:1`;
+    }
+
+    // Prepare the formatted values for output
+    return {
+        decimal: ratio,
+        percentage: percentageRatio.toFixed(4) + '%',
+        ratioFormat: ratioFormatted,
+    };
 }
 
 // const rpcUrl = `https://rpc-pulsechain.g4mm4.io`;
